@@ -1,1 +1,1 @@
-# Ta
+LIGHT SLAMANKA
