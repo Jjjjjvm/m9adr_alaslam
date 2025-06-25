@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مصادر الإسلام</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Noto Sans Arabic', 'Inter', sans-serif;
+            background-color: #f0fdf4; /* Light green-cream background */
+            color: #1a202c; /* Dark text */
+        }
+        .container {
+            max-width: 1024px;
+            margin: auto;
+            padding: 1.5rem;
+        }
+        .header {
+            background-color: #065f46; /* Darker green */
+            color: #e0f2f7; /* Light blue-white */
+            padding: 1.5rem 0;
+            border-bottom-left-radius: 2rem;
+            border-bottom-right-radius: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .search-section {
+            background-color: #d1fae5; /* Lighter green */
+            padding: 2rem;
+            margin-top: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .result-card {
+            background-color: #ecfdf5; /* Very light green */
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #065f46; /* Accent border */
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #065f46;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="font-sans">
+    <div class="header">
+        <h1 class="text-5xl font-bold">مصادر الإسلام</h1>
+        <p class="mt-2 text-xl">البحث في الكتب الدينية لاستخراج الدليل وتفسيره</p>
+    </div>
+
+    <div class="container">
+        <div class="search-section">
+            <div class="flex flex-col md:flex-row gap-4">
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="اكتب هنا ما تبحث عنه في الكتب الدينية..."
+                    class="flex-grow p-4 border-2 border-green-300 rounded-lg focus:outline-none focus:border-green-500 text-lg"
+                    dir="rtl"
+                />
+                <button
+                    id="searchButton"
+                    class="bg-green-700 hover:bg-green-800 text-white font-bold py-4 px-8 rounded-lg shadow-md transition duration-300 ease-in-out text-lg flex items-center justify-center"
+                >
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    بحث
+                </button>
+            </div>
+            <div id="loadingIndicator" class="hidden mt-4 flex justify-center">
+                <div class="loading-spinner"></div>
+                <span class="ml-3 text-green-700">جاري البحث...</span>
+            </div>
+        </div>
+
+        <div id="results" class="mt-6">
+            <!-- Results will be displayed here -->
+            <div id="placeholderMessage" class="text-center text-gray-500 text-lg p-8">
+                <p>
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    النتائج ستظهر هنا. يرجى إدخال سؤالك في مربع البحث أعلاه.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center text-gray-600 mt-10 pb-4">
+        &copy; 2025 مصادر الإسلام. جميع الحقوق محفوظة.
+    </footer>
+
+    <script>
+        document.getElementById('searchButton').addEventListener('click', async () => {
+            const searchText = document.getElementById('searchInput').value.trim();
+            const resultsDiv = document.getElementById('results');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const placeholderMessage = document.getElementById('placeholderMessage');
+
+            resultsDiv.innerHTML = ''; // Clear previous results
+            placeholderMessage.classList.add('hidden'); // Hide placeholder
+            loadingIndicator.classList.remove('hidden'); // Show loading indicator
+
+            if (!searchText) {
+                resultsDiv.innerHTML = `
+                    <div class="result-card bg-red-100 border-red-500 text-red-800">
+                        <p class="font-bold text-lg">خطأ:</p>
+                        <p>الرجاء إدخال نص للبحث.</p>
+                    </div>
+                `;
+                loadingIndicator.classList.add('hidden'); // Hide loading indicator
+                return;
+            }
+
+            try {
+                // Mock API call for demonstration. In a real application, you would
+                // send the searchText to your backend which would interact with
+                // a database of religious texts and an LLM for interpretation.
+
+                let chatHistory = [];
+                // Construct a prompt for the LLM to simulate the search and interpretation
+                const prompt = `بالنظر إلى الكتب الدينية الإسلامية، ابحث عن دليل، واشرح السبب، وقدم تفسيراً للعبارة التالية: "${searchText}".
+                يجب أن تكون الإجابة بتنسيق JSON على النحو التالي:
+                {
+                    "proof": "النص الدال من القرآن أو الحديث أو أي مصدر ديني مع ذكر المرجع (مثلاً: سورة البقرة، آية 285 أو صحيح البخاري حديث رقم 123)",
+                    "reason": "السبب أو الحكمة وراء هذا الدليل في سياقه الديني.",
+                    "interpretation": "تفسير مفصل للمدلول والآثار المترتبة عليه."
+                }
+                إذا لم تتمكن من العثور على دليل مباشر، قدم إجابة مفادها أن المعلومات غير متوفرة بهذا الشكل أو أن هناك حاجة لمزيد من التفصيل، مع التمسك بالصيغة JSON التي تعيد في كل حقل 'غير متوفر' أو 'غير ذي صلة'.
+                `;
+
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = {
+                    contents: chatHistory,
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                "proof": { "type": "STRING" },
+                                "reason": { "type": "STRING" },
+                                "interpretation": { "type": "STRING" }
+                            },
+                            "propertyOrdering": ["proof", "reason", "interpretation"]
+                        }
+                    }
+                };
+
+                const apiKey = "AIzaSyCkN_5SuUfS_21mlzQ0BL3XE74Eh36W2Jw"; // Canvas will automatically provide this
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const jsonString = result.candidates[0].content.parts[0].text;
+                    const parsedData = JSON.parse(jsonString);
+
+                    resultsDiv.innerHTML = `
+                        <div class="result-card">
+                            <h3 class="text-2xl font-semibold mb-3 text-green-800">الدليل:</h3>
+                            <p class="text-lg mb-4">${parsedData.proof || 'لا يوجد دليل مباشر متوفر.'}</p>
+
+                            <h3 class="text-2xl font-semibold mb-3 text-green-800">السبب/الحكمة:</h3>
+                            <p class="text-lg mb-4">${parsedData.reason || 'لا يوجد سبب/حكمة مباشرة متوفرة.'}</p>
+
+                            <h3 class="text-2xl font-semibold mb-3 text-green-800">التفسير:</h3>
+                            <p class="text-lg">${parsedData.interpretation || 'لا يوجد تفسير مباشر متوفر.'}</p>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="result-card bg-red-100 border-red-500 text-red-800">
+                            <p class="font-bold text-lg">خطأ في الاستجابة:</p>
+                            <p>لم يتمكن من الحصول على نتائج مفهومة من API. يرجى المحاولة مرة أخرى أو تحسين استعلامك.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                resultsDiv.innerHTML = `
+                    <div class="result-card bg-red-100 border-red-500 text-red-800">
+                        <p class="font-bold text-lg">حدث خطأ:</p>
+                        <p>عذرًا، حدث خطأ أثناء البحث. يرجى المحاولة مرة أخرى لاحقًا.</p>
+                        <p>تفاصيل الخطأ: ${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                loadingIndicator.classList.add('hidden'); // Hide loading indicator regardless of success/failure
+            }
+        });
+    </script>
+</body>
+</html>
