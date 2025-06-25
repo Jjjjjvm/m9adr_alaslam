@@ -102,110 +102,128 @@
     </footer>
 
     <script>
-        document.getElementById('searchButton').addEventListener('click', async () => {
-            const searchText = document.getElementById('searchInput').value.trim();
+        // Ensure the DOM is fully loaded before trying to access elements
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchButton = document.getElementById('searchButton');
+            const searchInput = document.getElementById('searchInput');
             const resultsDiv = document.getElementById('results');
             const loadingIndicator = document.getElementById('loadingIndicator');
             const placeholderMessage = document.getElementById('placeholderMessage');
 
-            resultsDiv.innerHTML = ''; // Clear previous results
-            placeholderMessage.classList.add('hidden'); // Hide placeholder
-            loadingIndicator.classList.remove('hidden'); // Show loading indicator
+            // Add an initial check for elements for debugging purposes
+            if (!searchButton) console.error("Error: searchButton not found!");
+            if (!searchInput) console.error("Error: searchInput not found!");
+            if (!resultsDiv) console.error("Error: resultsDiv not found!");
+            if (!loadingIndicator) console.error("Error: loadingIndicator not found!");
+            if (!placeholderMessage) console.error("Error: placeholderMessage not found!");
 
-            if (!searchText) {
-                resultsDiv.innerHTML = `
-                    <div class="result-card bg-red-100 border-red-500 text-red-800">
-                        <p class="font-bold text-lg">خطأ:</p>
-                        <p>الرجاء إدخال نص للبحث.</p>
-                    </div>
-                `;
-                loadingIndicator.classList.add('hidden'); // Hide loading indicator
-                return;
-            }
 
-            try {
-                // Mock API call for demonstration. In a real application, you would
-                // send the searchText to your backend which would interact with
-                // a database of religious texts and an LLM for interpretation.
+            searchButton.addEventListener('click', async () => {
+                const searchText = searchInput.value.trim();
 
-                let chatHistory = [];
-                // Construct a prompt for the LLM to simulate the search and interpretation
-                const prompt = `بالنظر إلى الكتب الدينية الإسلامية، ابحث عن دليل، واشرح السبب، وقدم تفسيراً للعبارة التالية: "${searchText}".
-                يجب أن تكون الإجابة بتنسيق JSON على النحو التالي:
-                {
-                    "proof": "النص الدال من القرآن أو الحديث أو أي مصدر ديني مع ذكر المرجع (مثلاً: سورة البقرة، آية 285 أو صحيح البخاري حديث رقم 123)",
-                    "reason": "السبب أو الحكمة وراء هذا الدليل في سياقه الديني.",
-                    "interpretation": "تفسير مفصل للمدلول والآثار المترتبة عليه."
+                // Clear previous results and show loading indicator
+                resultsDiv.innerHTML = ''; 
+                if (placeholderMessage) { // Defensive check
+                    placeholderMessage.classList.add('hidden');
                 }
-                إذا لم تتمكن من العثور على دليل مباشر، قدم إجابة مفادها أن المعلومات غير متوفرة بهذا الشكل أو أن هناك حاجة لمزيد من التفصيل، مع التمسك بالصيغة JSON التي تعيد في كل حقل 'غير متوفر' أو 'غير ذي صلة'.
-                `;
+                if (loadingIndicator) { // Defensive check
+                    loadingIndicator.classList.remove('hidden'); 
+                }
 
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                const payload = {
-                    contents: chatHistory,
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: "OBJECT",
-                            properties: {
-                                "proof": { "type": "STRING" },
-                                "reason": { "type": "STRING" },
-                                "interpretation": { "type": "STRING" }
-                            },
-                            "propertyOrdering": ["proof", "reason", "interpretation"]
-                        }
-                    }
-                };
-
-                const apiKey = ""; // Canvas will automatically provide this - Corrected to be empty
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const result = await response.json();
-
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const jsonString = result.candidates[0].content.parts[0].text;
-                    const parsedData = JSON.parse(jsonString);
-
-                    resultsDiv.innerHTML = `
-                        <div class="result-card">
-                            <h3 class="text-2xl font-semibold mb-3 text-green-800">الدليل:</h3>
-                            <p class="text-lg mb-4">${parsedData.proof || 'لا يوجد دليل مباشر متوفر.'}</p>
-
-                            <h3 class="text-2xl font-semibold mb-3 text-green-800">السبب/الحكمة:</h3>
-                            <p class="text-lg mb-4">${parsedData.reason || 'لا يوجد سبب/حكمة مباشرة متوفرة.'}</p>
-
-                            <h3 class="text-2xl font-semibold mb-3 text-green-800">التفسير:</h3>
-                            <p class="text-lg">${parsedData.interpretation || 'لا يوجد تفسير مباشر متوفر.'}</p>
-                        </div>
-                    `;
-                } else {
+                if (!searchText) {
                     resultsDiv.innerHTML = `
                         <div class="result-card bg-red-100 border-red-500 text-red-800">
-                            <p class="font-bold text-lg">خطأ في الاستجابة:</p>
-                            <p>لم يتمكن من الحصول على نتائج مفهومة من API. يرجى المحاولة مرة أخرى أو تحسين استعلامك.</p>
+                            <p class="font-bold text-lg">خطأ:</p>
+                            <p>الرجاء إدخال نص للبحث.</p>
                         </div>
                     `;
+                    if (loadingIndicator) { // Defensive check
+                        loadingIndicator.classList.add('hidden'); 
+                    }
+                    return;
                 }
-            } catch (error) {
-                console.error("Error fetching data:", error);
-                resultsDiv.innerHTML = `
-                    <div class="result-card bg-red-100 border-red-500 text-red-800">
-                        <p class="font-bold text-lg">حدث خطأ:</p>
-                        <p>عذرًا، حدث خطأ أثناء البحث. يرجى المحاولة مرة أخرى لاحقًا.</p>
-                        <p>تفاصيل الخطأ: ${error.message}</p>
-                    </div>
-                `;
-            } finally {
-                loadingIndicator.classList.add('hidden'); // Hide loading indicator regardless of success/failure
-            }
+
+                try {
+                    let chatHistory = []; 
+                    const prompt = `بالنظر إلى الكتب الدينية الإسلامية، ابحث عن دليل، واشرح السبب، وقدم تفسيراً للعبارة التالية: "${searchText}".
+                    يجب أن تكون الإجابة بتنسيق JSON على النحو التالي:
+                    {
+                        "proof": "النص الدال من القرآن أو الحديث أو أي مصدر ديني مع ذكر المرجع (مثلاً: سورة البقرة، آية 285 أو صحيح البخاري حديث رقم 123)",
+                        "reason": "السبب أو الحكمة وراء هذا الدليل في سياقه الديني.",
+                        "interpretation": "تفسير مفصل للمدلول والآثار المترتبة عليه."
+                    }
+                    إذا لم تتمكن من العثور على دليل مباشر، قدم إجابة مفادها أن المعلومات غير متوفرة بهذا الشكل أو أن هناك حاجة لمزيد من التفصيل، مع التمسك بالصيغة JSON التي تعيد في كل حقل 'غير متوفر' أو 'غير ذي صلة'.
+                    `;
+
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                    const payload = {
+                        contents: chatHistory,
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "OBJECT",
+                                properties: {
+                                    "proof": { "type": "STRING" },
+                                    "reason": { "type": "STRING" },
+                                    "interpretation": { "type": "STRING" }
+                                },
+                                "propertyOrdering": ["proof", "reason", "interpretation"]
+                            }
+                        }
+                    };
+
+                    const apiKey = ""; // Canvas will automatically provide this
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const jsonString = result.candidates[0].content.parts[0].text;
+                        const parsedData = JSON.parse(jsonString);
+
+                        resultsDiv.innerHTML = `
+                            <div class="result-card">
+                                <h3 class="text-2xl font-semibold mb-3 text-green-800">الدليل:</h3>
+                                <p class="text-lg mb-4">${parsedData.proof || 'لا يوجد دليل مباشر متوفر.'}</p>
+
+                                <h3 class="text-2xl font-semibold mb-3 text-green-800">السبب/الحكمة:</h3>
+                                <p class="text-lg mb-4">${parsedData.reason || 'لا يوجد سبب/حكمة مباشرة متوفرة.'}</p>
+
+                                <h3 class="text-2xl font-semibold mb-3 text-green-800">التفسير:</h3>
+                                <p class="text-lg">${parsedData.interpretation || 'لا يوجد تفسير مباشر متوفر.'}</p>
+                            </div>
+                        `;
+                    } else {
+                        resultsDiv.innerHTML = `
+                            <div class="result-card bg-red-100 border-red-500 text-red-800">
+                                <p class="font-bold text-lg">خطأ في الاستجابة:</p>
+                                <p>لم يتمكن من الحصول على نتائج مفهومة من API. يرجى المحاولة مرة أخرى أو تحسين استعلامك.</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error("Error fetching data:", error);
+                    resultsDiv.innerHTML = `
+                        <div class="result-card bg-red-100 border-red-500 text-red-800">
+                            <p class="font-bold text-lg">حدث خطأ:</p>
+                            <p>عذرًا، حدث خطأ أثناء البحث. يرجى المحاولة مرة أخرى لاحقًا.</p>
+                            <p>تفاصيل الخطأ: ${error.message}</p>
+                        </div>
+                    `;
+                } finally {
+                    if (loadingIndicator) { // Defensive check
+                        loadingIndicator.classList.add('hidden'); 
+                    }
+                }
+            });
         });
     </script>
 </body>
